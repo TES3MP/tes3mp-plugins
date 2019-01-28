@@ -14,6 +14,7 @@
 #include <Functions/Timer.h>
 #include <Functions/Public.h>
 #include <Functions/Server.h>
+#include <Functions/Miscellaneous.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,20 @@
 #endif
 
 static lua_State *L;
+
+void Log(unsigned short level, const char *fmt, ...)
+{
+    va_list list;
+    va_start(list, fmt);
+
+    int sz = 1 + vsnprintf(NULL, 0, fmt, list);
+    char *msg = malloc (sz);
+
+    vsnprintf(msg, sz, fmt, list);
+    va_end(list);
+    LogMessage(level, msg);
+    free(msg);
+}
 
 void OnServerInit()
 {
@@ -435,9 +450,13 @@ void OnRequestPluginList()
 
 typedef struct TPublic
 {
-    int timerId;
-    char *pubname;
+    union
+    {
+        int timerId;
+        char *pubname;
+    };
     char rettype;
+    int refid;
 } Public;
 
 Public *timers;
@@ -579,7 +598,7 @@ void PushValue(lua_State *L, char varType, ptrdiff_t var)
     }
 }
 
-ptrdiff_t PopValue(lua_State *L, char varType, int var)
+ptrdiff_t GetValue(lua_State *L, char varType, int var)
 {
     switch (varType)
     {
@@ -623,13 +642,14 @@ ptrdiff_t CallBackVoid()
 
     assert(public != NULL);
 
-    lua_getglobal(L, public->pubname);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, public->refid); // get lua function by refId
     if (lua_pcall(L, 0, public->rettype == 'v' ? 0 : 1, 0) != 0)
     {
-        fprintf(stderr, "lua_pcall: %s\n", lua_tostring(L, -1));
+        Log(3, "CallBackVoid: lua_pcall: %s\n", lua_tostring(L, -1));
+        return 0;
     }
     if (public->rettype != 'v')
-        return PopValue(L, public->rettype, -1);
+        return GetValue(L, public->rettype, -1);
     return 0;
 }
 
@@ -644,7 +664,7 @@ ptrdiff_t CallBack(ptrdiff_t arg0, ...)
 
     size_t defLen = strlen(def);
 
-    lua_getglobal(L, public->pubname);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, public->refid); // get lua function by refId
 
     if (defLen > 0)
     {
@@ -661,15 +681,16 @@ ptrdiff_t CallBack(ptrdiff_t arg0, ...)
 
     if (lua_pcall(L, (int) defLen,numRets, 0) != 0)
     {
-        fprintf(stderr, "lua_pcall: %s\n", lua_tostring(L, -1));
+        Log(3, "lua_pcall: %s\n", lua_tostring(L, -1));
+        return 0;
     }
 
     if (numRets == 1)
-        return PopValue(L, public->rettype, -1);
+        return GetValue(L, public->rettype, -1);
     return 0;
 }
 
-void _InitCBT(int tid, const char *cbname)
+void _InitCBT(int tid, int refid)
 {
     int found = 0;
     for (int i = 0; i < timersN; ++i)
@@ -684,26 +705,54 @@ void _InitCBT(int tid, const char *cbname)
         timers = realloc(timers, sizeof(Public) * publicN);
     }
 
-    timers[timersN - 1].timerId = tid;
-    timers[timersN - 1].pubname = strdup(cbname);
-    timers[timersN - 1].rettype = 'v';
+    Public *public = &publics[publicN - 1];
+
+    public->timerId = tid;
+    public->refid = refid;
+    public->rettype = 'v';
 }
 
-void _InitCBP(const char *cbname, char retType)
+void _InitCBP(const char *cbname, char retType, int refid)
 {
     publicN++;
     publics = realloc(publics, sizeof(Public) * publicN);
+    Public *public = &publics[publicN - 1];
 
-    publics[publicN - 1].pubname = strdup(cbname);
-    publics[publicN - 1].rettype = retType;
+    public->pubname = strdup(cbname);
+    public->rettype = retType;
+    public->refid = refid;
+}
+
+int GetRefId(lua_State *L, int idx, int *refId)
+{
+    (*refId) = -1;
+
+    if (!(lua_isfunction(L, 1) || lua_isstring(L, 1)))
+        return luaL_error(L, "GetRefId: first argument must be string or function, got %s\n", luaL_typename(L, 1));
+
+    if (lua_isstring(L, idx))
+    {
+        const char *fname = lua_tostring(L, idx);
+        lua_getglobal(L, fname);
+        if (lua_isnil(L, lua_gettop(L)) != 0)
+            return luaL_error(L, "lua_CreateTimer: %s is local or not implemented\n", fname);
+    }
+    else
+        lua_pushvalue(L, idx); // idx = function
+
+    (*refId) = luaL_ref(L, LUA_REGISTRYINDEX); // stack -> registry
+    return 0;
 }
 
 int lua_CreateTimer(lua_State *L)
 {
-    const char *cbname = luaL_checkstring(L, 1);
+    int refId;
+    int rets = GetRefId(L, 1, &refId);
+    if (refId < 0)
+        return rets;
     int msec = luaL_checkinteger(L, 2);
     int tid = CreateTimer((ScriptFunc) CallBackVoid, msec);
-    _InitCBT(tid, cbname);
+    _InitCBT(tid, refId);
     lua_pushinteger(L, tid);
     return 1;
 }
@@ -826,7 +875,10 @@ void LuaVarArgsToFFI(const char *def, int nargs, int start, FFIArgs *args)
 
 int lua_CreateTimerEx(lua_State *L)
 {
-    const char *cbname = luaL_checkstring(L, 1);
+    int refId;
+    int rets = GetRefId(L, 1, &refId);
+    if (refId < 0)
+        return rets;
     int msec = luaL_checkinteger(L, 2);
     const char *def = luaL_checkstring(L, 3);
     size_t defLen = strlen(def);
@@ -863,7 +915,7 @@ int lua_CreateTimerEx(lua_State *L)
 
     FreeFFIArgs(&a);
 
-    _InitCBT((int) tid, cbname);
+    _InitCBT((int) tid, refId);
     lua_pushinteger(L, tid);
     return 1;
 }
@@ -902,6 +954,7 @@ int lua_FreeTimer(lua_State *L)
         free(public->pubname);
         public->pubname = NULL;
         public->timerId = -1;
+        luaL_unref(L, LUA_REGISTRYINDEX, public->refid);
     }
 
     FreeTimer(tid);
@@ -925,12 +978,16 @@ int lua_GetTimerId(lua_State *L)
 
 int lua_MakePublic(lua_State *L)
 {
+    int refId;
+    int rets = GetRefId(L, 1, &refId);
+    if (refId < 0)
+        return rets;
     const char *cbname = luaL_checkstring(L, 1);
     char retType = luaL_checkstring(L, 2)[0];
-    const char *def = luaL_checkstring(L, 3);
-    size_t defLen = strlen(def);
+    size_t defLen;
+    const char *def = luaL_checklstring(L, 3, &defLen);
 
-    _InitCBP(cbname, retType);
+    _InitCBP(cbname, retType, refId);
     ScriptFunc cb;
     if (defLen == 0)
         cb = (ScriptFunc) CallBackVoid;
@@ -1038,13 +1095,14 @@ int LoadLuaScript(const char *scriptPath)
 {
     if (luaL_loadfile(L, scriptPath) != 0)
     {
-        fprintf(stderr, "luaL_loadfile: %s\n", lua_tostring(L, -1));
+
+        Log(3, "luaL_loadfile: %s\n", lua_tostring(L, -1));
         return 0;
     }
 
     if (lua_pcall(L, 0, 0, 0) != 0)
     {
-        fprintf(stderr, "lua_pcall: %s\n", lua_tostring(L, -1));
+        Log(3, "lua_pcall: %s\n", lua_tostring(L, -1));
         return 0;
     }
     return 1;
@@ -1111,13 +1169,19 @@ int PluginInit()
 void PluginFree()
 {
     for (int i = 0; i < publicN; ++i)
+    {
+        luaL_unref(L, LUA_REGISTRYINDEX, publics[i].refid);
         free(publics[i].pubname);
+    }
     free(publics);
 
     for (int i = 0; i < timersN; ++i)
+    {
+        luaL_unref(L, LUA_REGISTRYINDEX, publics[i].refid);
         free(timers[i].pubname);
+    }
     free(timers);
 
-    printf("PluginFree()\n");
+    Log(0, "PluginFree()");
     lua_close(L);
 }
