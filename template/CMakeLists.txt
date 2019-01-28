@@ -1,4 +1,4 @@
-project(PluginTemplate)
+project(PluginTemplate C)
 
 set(PROJECT_NAME plugintemplate)
 

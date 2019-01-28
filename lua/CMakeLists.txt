@@ -1,4 +1,4 @@
-project(PluginLua)
+project(PluginLua C)
 
 find_package(LuaJit REQUIRED)
 

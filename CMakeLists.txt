@@ -4,6 +4,7 @@ project(tes3mp_plugins)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_C_STANDARD 11)
 
 include(cmake/tes3mpPlugin.cmake)
 include(cmake/GenFFI.cmake)
