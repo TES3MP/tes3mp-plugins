@@ -45,196 +45,207 @@ void Log(unsigned short level, const char *fmt, ...)
     free(msg);
 }
 
+#define GetGlobalOrRef(L, s) \
+    static int funcRef = -1;\
+    if (funcRef == -1)\
+    {\
+        lua_getglobal(L, (s));\
+        lua_pushvalue(L, 1);\
+        funcRef = luaL_ref(L, LUA_REGISTRYINDEX);\
+    }\
+    else\
+        lua_rawgeti(L, LUA_REGISTRYINDEX, funcRef)
+
 void OnServerInit()
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pcall(L, 0, 0, 0);
 }
 
 void OnServerPostInit()
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pcall(L, 0, 0, 0);
 }
 
 void OnServerExit(bool code)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, code);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerConnect(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerDisconnect(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerDeath(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerResurrect(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerCellChange(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerAttribute(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerSkill(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerLevel(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerBounty(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerReputation(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerEquipment(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerInventory(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerJournal(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerFaction(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerShapeshift(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerQuickKeys(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerTopic(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerDisposition(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerBook(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerItemUse(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerMiscellaneous(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerInput(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnPlayerRest(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnRecordDynamic(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnCellLoad(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -242,7 +253,7 @@ void OnCellLoad(PlayerId pid, const char *cellDescription)
 
 void OnCellUnload(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -250,14 +261,14 @@ void OnCellUnload(PlayerId pid, const char *cellDescription)
 
 void OnCellDeletion(const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnContainer(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -265,7 +276,7 @@ void OnContainer(PlayerId pid, const char *cellDescription)
 
 void OnDoorState(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -273,7 +284,7 @@ void OnDoorState(PlayerId pid, const char *cellDescription)
 
 void OnObjectActivate(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -281,7 +292,7 @@ void OnObjectActivate(PlayerId pid, const char *cellDescription)
 
 void OnObjectPlace(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -289,7 +300,7 @@ void OnObjectPlace(PlayerId pid, const char *cellDescription)
 
 void OnObjectState(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -297,7 +308,7 @@ void OnObjectState(PlayerId pid, const char *cellDescription)
 
 void OnObjectSpawn(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -305,7 +316,7 @@ void OnObjectSpawn(PlayerId pid, const char *cellDescription)
 
 void OnObjectDelete(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -313,7 +324,7 @@ void OnObjectDelete(PlayerId pid, const char *cellDescription)
 
 void OnObjectLock(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -321,7 +332,7 @@ void OnObjectLock(PlayerId pid, const char *cellDescription)
 
 void OnObjectScale(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -329,7 +340,7 @@ void OnObjectScale(PlayerId pid, const char *cellDescription)
 
 void OnObjectTrap(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -337,7 +348,7 @@ void OnObjectTrap(PlayerId pid, const char *cellDescription)
 
 void OnVideoPlay(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -345,7 +356,7 @@ void OnVideoPlay(PlayerId pid, const char *cellDescription)
 
 void OnActorList(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -353,7 +364,7 @@ void OnActorList(PlayerId pid, const char *cellDescription)
 
 void OnActorEquipment(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -361,7 +372,7 @@ void OnActorEquipment(PlayerId pid, const char *cellDescription)
 
 void OnActorAI(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -369,7 +380,7 @@ void OnActorAI(PlayerId pid, const char *cellDescription)
 
 void OnActorDeath(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -377,7 +388,7 @@ void OnActorDeath(PlayerId pid, const char *cellDescription)
 
 void OnActorCellChange(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -385,7 +396,7 @@ void OnActorCellChange(PlayerId pid, const char *cellDescription)
 
 void OnActorTest(PlayerId pid, const char *cellDescription)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, cellDescription);
     lua_pcall(L, 2, 0, 0);
@@ -393,7 +404,7 @@ void OnActorTest(PlayerId pid, const char *cellDescription)
 
 void OnPlayerSendMessage(PlayerId pid, const char *message)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, message);
     lua_pcall(L, 2, 0, 0);
@@ -401,14 +412,14 @@ void OnPlayerSendMessage(PlayerId pid, const char *message)
 
 void OnPlayerEndCharGen(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnGUIAction(PlayerId pid, const char *data)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pushstring(L, data);
     lua_pcall(L, 2, 0, 0);
@@ -416,35 +427,35 @@ void OnGUIAction(PlayerId pid, const char *data)
 
 void OnWorldKillCount(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnWorldMap(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnWorldWeather(PlayerId pid)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, pid);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnMpNumIncrement(int mpNum)
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pushinteger(L, mpNum);
     lua_pcall(L, 1, 0, 0);
 }
 
 void OnRequestPluginList()
 {
-    lua_getglobal(L, __FUNCTION__);
+    GetGlobalOrRef(L, __FUNCTION__);
     lua_pcall(L, 0, 0, 0);
 }
 
