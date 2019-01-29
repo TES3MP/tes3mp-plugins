@@ -5,7 +5,7 @@ find_package(LuaJit REQUIRED)
 set(PROJECT_NAME pluginlua)
 
 tes3mp_plugin(NAME ${PROJECT_NAME}
-        SRCS lua.c
+        SRCS lua.c murmurhash.c murmurhash.h
         LIBS ${LuaJit_LIBRARIES} ${LIBFFI_LIBRARIES}
         INCL ${LuaJit_INCLUDE_DIRS} ${LIBFFI_INCLUDE_DIR}
         )

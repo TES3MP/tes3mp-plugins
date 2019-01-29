@@ -25,6 +25,8 @@
 #include <luajit.h>
 #include <assert.h>
 
+#include "murmurhash.h"
+
 #if LUAJIT_VERSION_NUM != 20100
 #error "Minimal LuaJit version is 2.1.0"
 #endif
@@ -37,7 +39,7 @@ void Log(unsigned short level, const char *fmt, ...)
     va_start(list, fmt);
 
     int sz = 1 + vsnprintf(NULL, 0, fmt, list);
-    char *msg = malloc (sz);
+    char *msg = malloc(sz);
 
     vsnprintf(msg, sz, fmt, list);
     va_end(list);
@@ -464,7 +466,7 @@ typedef struct TPublic
     union
     {
         int timerId;
-        char *pubname;
+        uint32_t callbackHash;
     };
     char rettype;
     int refid;
@@ -527,11 +529,14 @@ void push_val(va_list list, char def)
 void GetPublicAndDef(Public **public, const char **def)
 {
     const char *pubName = GetPublicName();
+
     if (pubName != NULL)
     {
+        size_t pubNameSize = strlen(pubName);
+        uint32_t pubNameHash = MurmurHash3A(pubName, pubNameSize, 0);
         for (int i = 0; i < publicN; ++i)
         {
-            if (strcmp(publics[i].pubname, pubName) == 0)
+            if (publics[i].callbackHash == pubNameHash)
             {
                 (*public) = &publics[i];
                 break;
@@ -688,9 +693,9 @@ ptrdiff_t CallBack(ptrdiff_t arg0, ...)
         va_end(list);
     }
 
-    int numRets =  public->rettype == 'v' ? 0 : 1;
+    int numRets = public->rettype == 'v' ? 0 : 1;
 
-    if (lua_pcall(L, (int) defLen,numRets, 0) != 0)
+    if (lua_pcall(L, (int) defLen, numRets, 0) != 0)
     {
         Log(3, "lua_pcall: %s\n", lua_tostring(L, -1));
         return 0;
@@ -723,13 +728,13 @@ void _InitCBT(int tid, int refid)
     public->rettype = 'v';
 }
 
-void _InitCBP(const char *cbname, char retType, int refid)
+void _InitCBP(unsigned int callbackHash, char retType, int refid)
 {
     publicN++;
     publics = realloc(publics, sizeof(Public) * publicN);
     Public *public = &publics[publicN - 1];
 
-    public->pubname = strdup(cbname);
+    public->callbackHash = callbackHash;
     public->rettype = retType;
     public->refid = refid;
 }
@@ -962,8 +967,6 @@ int lua_FreeTimer(lua_State *L)
 
     if (public != NULL)
     {
-        free(public->pubname);
-        public->pubname = NULL;
         public->timerId = -1;
         luaL_unref(L, LUA_REGISTRYINDEX, public->refid);
     }
@@ -993,12 +996,16 @@ int lua_MakePublic(lua_State *L)
     int rets = GetRefId(L, 1, &refId);
     if (refId < 0)
         return rets;
-    const char *cbname = luaL_checkstring(L, 1);
+
+    size_t len;
+    const char *cbname = luaL_checklstring(L, 1, &len);
+    uint32_t hash = MurmurHash3A(cbname, len, 0);
+
     char retType = luaL_checkstring(L, 2)[0];
     size_t defLen;
     const char *def = luaL_checklstring(L, 3, &defLen);
 
-    _InitCBP(cbname, retType, refId);
+    _InitCBP(hash, retType, refId);
     ScriptFunc cb;
     if (defLen == 0)
         cb = (ScriptFunc) CallBackVoid;
@@ -1182,14 +1189,12 @@ void PluginFree()
     for (int i = 0; i < publicN; ++i)
     {
         luaL_unref(L, LUA_REGISTRYINDEX, publics[i].refid);
-        free(publics[i].pubname);
     }
     free(publics);
 
     for (int i = 0; i < timersN; ++i)
     {
         luaL_unref(L, LUA_REGISTRYINDEX, publics[i].refid);
-        free(timers[i].pubname);
     }
     free(timers);
 
